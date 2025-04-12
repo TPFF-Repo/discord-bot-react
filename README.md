@@ -14,19 +14,33 @@ Ce bot Discord simple permet de répondre aux messages dans les threads et d'int
 
 ## Fonctionnalités
 
-- Répond "Pong! 🏓" lorsqu'un utilisateur envoie "!ping"
-- Prêt à être étendu avec d'autres commandes et fonctionnalités
+- Système de modération automatique :
+  - Suppression des messages sans média après 5 minutes
+  - Exemption des modérateurs et messages épinglés
+- Gestion des threads :
+  - Vérification quotidienne des threads non verrouillés
+  - Fermeture automatique après 7 jours d'inactivité
+- Réaction 🏆 aux messages répondant aux critères
+- Commande !ping pour vérifier la latence
 
-## Notes techniques
+## Configuration requise
 
-- Utilise Discord.js v14.18.0
-- Configuré avec les intents nécessaires pour lire les messages et interagir avec les guildes
-- Nécessite l'intent `MessageContent` pour lire le contenu des messages (privilégié dans l'API Discord)
+Variables d'environnement :
+- `CLIENT_TOKEN`: Token d'authentification du bot Discord
+- `CHANNEL_ID`: ID du canal surveillé
+- `REACT_EMOJI`: Emoji utilisé pour les réactions (par défaut: 🏆)
+
+Versions :
+- Node.js v18.16.0
+- Discord.js v14.18.0
+- Intents nécessaires : `Guilds`, `GuildMessages`, `MessageContent`
 
 ## Dépannage
 
 Si vous rencontrez des problèmes:
 
-1. Vérifiez que votre token est correct dans le fichier `.env`
-2. Assurez-vous que votre bot a les permissions nécessaires dans Discord
-3. Vérifiez que vous avez activé les intents privilégiés dans le portail développeur Discord
+1. Vérifiez les variables d'environnement et leurs permissions
+2. Vérifiez les droits du bot sur le canal spécifié
+3. Assurez-vous que le bot peut gérer les threads
+4. Vérifiez la version de Node.js et des dépendances
+5. Confirmez l'activation des intents privilégiés sur le portail Discord
