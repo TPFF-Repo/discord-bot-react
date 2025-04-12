@@ -26,6 +26,9 @@ client.on(Events.ThreadUpdate, (oldThread, newThread) => {
   if (oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
     applyThreadRules(newThread);
+  } else if (!oldThread.locked && newThread.locked) {
+    threadHandlers.delete(newThread);
+    console.log(`Thread ${newThread.name} nettoyé`);
   }
 });
 
@@ -122,11 +125,7 @@ function applyThreadRules(thread) {
     lastActivity: Date.now()
   });
 
-  // Nettoyage automatique quand le thread est verrouillé
-  thread.on('threadLocked', () => {
-    threadHandlers.delete(thread);
-    console.log(`Thread ${thread.name} nettoyé`);
-  });
+
 }
 
 // Écouteurs globaux pour les threads
@@ -141,6 +140,9 @@ client.on(Events.ThreadUpdate, (oldThread, newThread) => {
   if (oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
     applyThreadRules(newThread);
+  } else if (!oldThread.locked && newThread.locked) {
+    threadHandlers.delete(newThread);
+    console.log(`Thread ${newThread.name} nettoyé`);
   }
 });
 
