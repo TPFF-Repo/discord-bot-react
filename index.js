@@ -8,16 +8,21 @@ const client = new Client({
   ]
 });
   
-  client.on('ready', () => {
-    console.log(`Connecté en tant que ${client.user.tag}`);
+  client.once(Events.ClientReady, () => {
+    console.log(`Connecté en tant que ${client.user.tag}!`);
     console.log(`Surveillance du canal ID: ${process.env.CHANNEL_ID}`);
     console.log(`Réaction configurée: ${process.env.REACT_EMOJI}`);
-    
-    // Lister les messages récents du fil au démarrage
-    listThreadMessages();
+    setInterval(listThreadMessages, 60000);
   });
   
-  client.on(Events.ThreadUpdate, (oldThread, newThread) => {
+  client.on(Events.ThreadCreate, (thread) => {
+  if (thread.parentId === process.env.CHANNEL_ID) {
+    console.log(`Nouveau thread détecté: ${thread.name}`);
+    applyThreadRules(thread);
+  }
+});
+
+client.on(Events.ThreadUpdate, (oldThread, newThread) => {
   if (oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
     applyThreadRules(newThread);
@@ -107,7 +112,14 @@ client.on(Events.MessageCreate, async (message) => {
     });
   }
 
-// Écouteur global pour les threads déverrouillés
+// Écouteurs globaux pour les threads
+client.on(Events.ThreadCreate, (thread) => {
+  if (thread.parentId === process.env.CHANNEL_ID) {
+    console.log(`Nouveau thread détecté: ${thread.name}`);
+    applyThreadRules(thread);
+  }
+});
+
 client.on(Events.ThreadUpdate, (oldThread, newThread) => {
   if (oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
