@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Système d'exploitation
+.DS_Store
+Thumbs.db
+*.tmp
+
+# IDE/Editeur
+.vscode/
+.idea/
+
+# Fichiers de débogage
+*.pid
+*.seed
+
+# Fichiers de build
+dist/
+
+# Fichiers de test
+coverage/
+.nyc_output/
