@@ -103,14 +103,31 @@ client.on(Events.MessageCreate, async (message) => {
     }
   }
 
-  function applyThreadRules(thread) {
-    // Écouteur pour les nouveaux messages dans le thread
-    thread.client.on(Events.MessageCreate, async (message) => {
-      if (message.channelId === thread.id) {
-        handleMessage(message);
-      }
-    });
+  const threadHandlers = new WeakMap();
+
+client.setMaxListeners(20);
+
+// Écouteur unique global
+client.on(Events.MessageCreate, async (message) => {
+  const thread = threadHandlers.get(message.channel);
+  if (thread && !thread.locked) {
+    handleMessage(message);
   }
+});
+
+function applyThreadRules(thread) {
+  // Enregistrer le thread dans la WeakMap
+  threadHandlers.set(thread, {
+    createdAt: Date.now(),
+    lastActivity: Date.now()
+  });
+
+  // Nettoyage automatique quand le thread est verrouillé
+  thread.on('threadLocked', () => {
+    threadHandlers.delete(thread);
+    console.log(`Thread ${thread.name} nettoyé`);
+  });
+}
 
 // Écouteurs globaux pour les threads
 client.on(Events.ThreadCreate, (thread) => {
