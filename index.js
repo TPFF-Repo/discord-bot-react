@@ -16,14 +16,14 @@ const client = new Client({
   });
   
   client.on(Events.ThreadCreate, (thread) => {
-  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
+  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID || thread.parentId === process.env.CHANNEL_SCREENSHOT_ID) {
     console.log(`Nouveau thread détecté: ${thread.name}`);
     applyThreadRules(thread);
   }
 });
 
 client.on(Events.ThreadUpdate, (oldThread, newThread) => {
-  if (oldThread.locked && !newThread.locked) {
+  if ((oldThread.parentId === process.env.CHANNEL_CONCOUR_ID || oldThread.parentId === process.env.CHANNEL_SCREENSHOT_ID) && oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
     applyThreadRules(newThread);
   } else if (!oldThread.locked && newThread.locked) {
@@ -130,14 +130,14 @@ function applyThreadRules(thread) {
 
 // Écouteurs globaux pour les threads
 client.on(Events.ThreadCreate, (thread) => {
-  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
+  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID || thread.parentId === process.env.CHANNEL_SCREENSHOT_ID) {
     console.log(`Nouveau thread détecté: ${thread.name}`);
     applyThreadRules(thread);
   }
 });
 
 client.on(Events.ThreadUpdate, (oldThread, newThread) => {
-  if (oldThread.locked && !newThread.locked) {
+  if ((oldThread.parentId === process.env.CHANNEL_CONCOUR_ID || oldThread.parentId === process.env.CHANNEL_SCREENSHOT_ID) && oldThread.locked && !newThread.locked) {
     console.log(`Thread déverrouillé détecté: ${newThread.name}`);
     applyThreadRules(newThread);
   } else if (!oldThread.locked && newThread.locked) {
