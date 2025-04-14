@@ -33,7 +33,13 @@ module.exports = {
           console.error('Erreur modération concours:', error);
         }
       } else if (hasMedia) {
-        await message.react(process.env.REACT_EMOJI);
+        try {
+          console.log('Tentative de réaction pour message:', message.id, 'Emoji:', process.env.REACT_EMOJI);
+          await message.react(process.env.REACT_EMOJI);
+          console.log('Réaction ajoutée avec succès');
+        } catch (error) {
+          console.error('Erreur réaction:', error);
+        }
       }
     });
   }
