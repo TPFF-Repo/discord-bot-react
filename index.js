@@ -51,7 +51,7 @@ client.on(Events.MessageCreate, async (message) => {
         console.error("Erreur lors de la suppression du message:", error);
       }
     }
-    else if ((message.channelId === process.env.CHANNEL_CONCOUR_ID || message.channelId === process.env.CHANNEL_SCREENSHOT_ID) && (message.attachments.size > 0 || message.embeds.length > 0) && message.member) {
+    else if (message.channelId === process.env.CHANNEL_CONCOUR_ID && (message.attachments.size > 0 || message.embeds.length > 0) && message.member) {
       console.log(`Nouveau message avec média dans le fil: ${message.content}`);
       
       try {
