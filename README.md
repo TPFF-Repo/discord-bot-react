@@ -27,12 +27,13 @@ Ce bot Discord simple permet de répondre aux messages dans les threads et d'int
 
 Variables d'environnement :
 - `CLIENT_TOKEN`: Token d'authentification du bot Discord
-- `CHANNEL_ID`: ID du canal surveillé
+- `CHANNEL_CONCOUR_ID`: ID du canal de concours
+- `CHANNEL_SCREENSHOT_ID`: ID du canal pour les captures d'écran
 - `REACT_EMOJI`: Emoji utilisé pour les réactions (par défaut: 🏆)
 
 Versions :
 - Node.js v18.16.0
-- Discord.js v14.18.0
+- Discord.js v14.18.2
 - Intents nécessaires : `Guilds`, `GuildMessages`, `MessageContent`
 
 ## Dépannage

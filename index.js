@@ -10,13 +10,13 @@ const client = new Client({
   
   client.once(Events.ClientReady, () => {
     console.log(`Connecté en tant que ${client.user.tag}!`);
-    console.log(`Surveillance du canal ID: ${process.env.CHANNEL_ID}`);
+    console.log(`Surveillance du canal ID: ${process.env.CHANNEL_CONCOUR_ID}`);
     console.log(`Réaction configurée: ${process.env.REACT_EMOJI}`);
     setInterval(listThreadMessages, 60000);
   });
   
   client.on(Events.ThreadCreate, (thread) => {
-  if (thread.parentId === process.env.CHANNEL_ID) {
+  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
     console.log(`Nouveau thread détecté: ${thread.name}`);
     applyThreadRules(thread);
   }
@@ -40,7 +40,7 @@ client.on(Events.MessageCreate, async (message) => {
     }
     
     // Vérifier si le message est dans le canal spécifié
-    if (message.channelId === process.env.CHANNEL_ID && message.attachments.size === 0 && message.embeds.length === 0 && message.member && !message.member.roles.cache.some(role => role.name === 'Modérateur')) {
+    if ((message.channelId === process.env.CHANNEL_CONCOUR_ID || message.channelId === process.env.CHANNEL_SCREENSHOT_ID) && message.attachments.size === 0 && message.embeds.length === 0 && message.member && !message.member.roles.cache.some(role => role.name === 'Modérateur')) {
       console.log(`Message texte sans média détecté: ${message.content}`);
       
       try {
@@ -51,7 +51,7 @@ client.on(Events.MessageCreate, async (message) => {
         console.error("Erreur lors de la suppression du message:", error);
       }
     }
-    else if (message.channelId === process.env.CHANNEL_ID && (message.attachments.size > 0 || message.embeds.length > 0) && message.member) {
+    else if ((message.channelId === process.env.CHANNEL_CONCOUR_ID || message.channelId === process.env.CHANNEL_SCREENSHOT_ID) && (message.attachments.size > 0 || message.embeds.length > 0) && message.member) {
       console.log(`Nouveau message avec média dans le fil: ${message.content}`);
       
       try {
@@ -67,7 +67,7 @@ client.on(Events.MessageCreate, async (message) => {
   // Fonction pour lister les messages récents du fil
   async function listThreadMessages() {
     try {
-      const parentChannel = await client.channels.fetch(process.env.CHANNEL_ID);
+      const parentChannel = await client.channels.fetch(process.env.CHANNEL_CONCOUR_ID);
       if (!parentChannel) {
         console.error('Canal parent non trouvé');
         return;
@@ -130,7 +130,7 @@ function applyThreadRules(thread) {
 
 // Écouteurs globaux pour les threads
 client.on(Events.ThreadCreate, (thread) => {
-  if (thread.parentId === process.env.CHANNEL_ID) {
+  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
     console.log(`Nouveau thread détecté: ${thread.name}`);
     applyThreadRules(thread);
   }
