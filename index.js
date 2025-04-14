@@ -159,6 +159,12 @@ client.on(Events.ThreadUpdate, (oldThread, newThread) => {
     if (message.attachments.size === 0 && message.embeds.length === 0 && 
         !member.roles.cache.some(role => role.name === 'Modérateur')) {
       try {
+        await message.author.send('Votre message texte a été supprimé car il ne contient pas de média. Veuillez respecter les règles du concours.');
+        console.log('Message d\'avertissement envoyé à l\'utilisateur');
+      } catch (dmError) {
+        console.error('Erreur envoi MP:', dmError);
+      }
+      try {
         await message.delete();
         console.log('Message texte supprimé dans le thread');
       } catch (error) {
