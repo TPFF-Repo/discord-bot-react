@@ -23,6 +23,23 @@ Ce bot Discord simple permet de répondre aux messages dans les threads et d'int
 - Réaction 🏆 aux messages répondant aux critères
 - Commande !ping pour vérifier la latence
 
+## Architecture modulaire
+
+- **concours.js** : Gestion des soumissions et modération du concours
+- **screenshot.js** : Modération des captures d'écran
+- **threads.js** : Gestion des discussions threadées
+- **index.js** : Point d'entrée et configuration initiale
+
+## Diagramme de flux
+```mermaid
+graph TD
+  A[Message] --> B{Channel?}
+  B -->|Concours| C[Vérifier média]
+  B -->|Screenshot| D[Vérifier attachment]
+  C --> E[Réaction 🏆]
+  D --> F[Suppression si invalide]
+```
+
 ## Configuration requise
 
 Variables d'environnement :
