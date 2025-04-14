@@ -34,9 +34,18 @@ module.exports = {
         }
       } else if (hasMedia) {
         try {
+          console.log('[DEBUG] Entrée dans le bloc de réaction');
           console.log('Tentative de réaction pour message:', message.id, 'Emoji:', process.env.REACT_EMOJI);
-          await message.react(process.env.REACT_EMOJI);
-          console.log('Réaction ajoutée avec succès');
+          console.log('Permissions du bot:', message.guild.me.permissionsIn(message.channel).toArray());
+          
+          await message.react(process.env.REACT_EMOJI)
+            .then(() => console.log('Réaction ajoutée avec succès'))
+            .catch(err => console.error('Échec de la réaction:', err));
+          
+          console.log('[DEBUG] Vérification média:', {
+            attachments: message.attachments.size,
+            embeds: message.embeds.length
+          });
         } catch (error) {
           console.error('Erreur réaction:', error);
         }
