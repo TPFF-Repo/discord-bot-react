@@ -3,8 +3,8 @@ require('dotenv').config();
 
 const GestionConcours = require('./concours.js');
 const GestionThreads = require('./threads.js');
-const purgeCommand = require('./commande.js');
 const { REST, Routes } = require('discord.js');
+const commands = require('./commands.js');
 
 const client = new Client({
   intents: [
@@ -15,6 +15,9 @@ const client = new Client({
     GatewayIntentBits.Guilds
   ]
 });
+const YouTubeMonitor = require('./youtubeMonitor.js');
+const youtubeMonitor = new YouTubeMonitor(client);
+youtubeMonitor.initialize();
 
 const gestionConcours = new GestionConcours(client);
 const gestionThreads = new GestionThreads();
@@ -52,24 +55,43 @@ client.on('threadCreate', async (thread) => {
   }
 });
 
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
-  if (interaction.commandName === 'purge') {
-    await purgeCommand.execute(interaction);
+client.on('newVideo', ({ video, username, channelId }) => {
+  const channel = client.channels.cache.get(channelId);
+  if (channel) {
+    channel.send(`**${username}** a publié une nouvelle vidéo\nhttps://www.youtube.com/watch?v=${video.id.videoId}`);
   }
 });
 
-client.on('ready', async () => {
-  try {
-    const rest = new REST({ version: '10' }).setToken(process.env.CLIENT_TOKEN);
-    await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: [purgeCommand.data.toJSON()] }
-    );
-    console.log('Commandes slash enregistrées avec succès');
-  } catch (error) {
-    console.error('Erreur enregistrement commandes:', error);
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
+  
+  if (interaction.commandName === 'add-youtube') {
+    await youtubeCommand.execute(interaction);
   }
+});
+
+// Remplacer la section d'enregistrement des commandes
+client.on('ready', async () => {
+    try {
+        const rest = new REST({ version: '10' }).setToken(process.env.CLIENT_TOKEN);
+        await rest.put(
+            Routes.applicationCommands(process.env.CLIENT_ID),
+            { body: commands.map(cmd => cmd.data.toJSON()) }
+        );
+        console.log('Commandes slash enregistrées avec succès');
+    } catch (error) {
+        console.error('Erreur enregistrement commandes:', error);
+    }
+});
+
+// Modifier le gestionnaire d'interactions
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isCommand()) return;
+    
+    const command = commands.find(cmd => cmd.data.name === interaction.commandName);
+    if (command) {
+        await command.execute(interaction);
+    }
 });
 
 client.login(process.env.CLIENT_TOKEN);

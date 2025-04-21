@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
-    "jest": "^29.7.0",
     "@types/jest": "^29.5.8",
-    "discord.js": "^14.13.0"
+    "discord.js": "^14.13.0",
+    "jest": "^29.7.0"
   },
   "scripts": {
     "test": "jest --verbose",
@@ -18,12 +18,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.4",
     "discord.js": "^14.18.0",
     "dotenv": "^16.5.0"
   },
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["html", "text"],
+    "coverageReporters": [
+      "html",
+      "text"
+    ],
     "coverageDirectory": "coverage"
-  } 
+  }
 }
