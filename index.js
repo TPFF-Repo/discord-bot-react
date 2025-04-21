@@ -3,13 +3,16 @@ require('dotenv').config();
 
 const GestionConcours = require('./concours.js');
 const GestionThreads = require('./threads.js');
+const purgeCommand = require('./commande.js');
+const { REST, Routes } = require('discord.js');
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.Guilds
   ]
 });
 
@@ -46,6 +49,26 @@ client.on('messageCreate', async (message) => {
 client.on('threadCreate', async (thread) => {
   if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
     await gestionThreads.creerThreadSemaine(thread.parent);
+  }
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === 'purge') {
+    await purgeCommand.execute(interaction);
+  }
+});
+
+client.on('ready', async () => {
+  try {
+    const rest = new REST({ version: '10' }).setToken(process.env.CLIENT_TOKEN);
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: [purgeCommand.data.toJSON()] }
+    );
+    console.log('Commandes slash enregistrées avec succès');
+  } catch (error) {
+    console.error('Erreur enregistrement commandes:', error);
   }
 });
 
