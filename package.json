@@ -2,8 +2,15 @@
   "name": "discord-react-thread-message-bot",
   "version": "1.0.0",
   "main": "index.js",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "discord.js": "^14.13.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --verbose",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
     "start": "node index.js"
   },
   "keywords": [],
@@ -13,5 +20,10 @@
   "dependencies": {
     "discord.js": "^14.18.0",
     "dotenv": "^16.5.0"
-  }
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": ["html", "text"],
+    "coverageDirectory": "coverage"
+  } 
 }

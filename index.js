@@ -1,177 +1,52 @@
+const { Client, GatewayIntentBits } = require('discord.js');
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events } = require('discord.js');
+
+const GestionConcours = require('./concours.js');
+const GestionThreads = require('./threads.js');
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions
   ]
 });
-  
-  client.once(Events.ClientReady, () => {
-    console.log(`Connecté en tant que ${client.user.tag}!`);
-    console.log(`Surveillance du canal ID: ${process.env.CHANNEL_CONCOUR_ID}`);
-    console.log(`Réaction configurée: ${process.env.REACT_EMOJI}`);
-    setInterval(listThreadMessages, 60000);
-  });
-  
-  client.on(Events.ThreadCreate, (thread) => {
-  if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
-    console.log(`Nouveau thread détecté: ${thread.name}`);
-    applyThreadRules(thread);
-  }
-});
 
-client.on(Events.ThreadUpdate, (oldThread, newThread) => {
-  if (oldThread.locked && !newThread.locked) {
-    console.log(`Thread déverrouillé détecté: ${newThread.name}`);
-    applyThreadRules(newThread);
-  } else if (!oldThread.locked && newThread.locked) {
-    threadHandlers.delete(newThread);
-    console.log(`Thread ${newThread.name} nettoyé`);
-  }
-});
+const gestionConcours = new GestionConcours(client);
+const gestionThreads = new GestionThreads();
 
-client.on(Events.MessageCreate, async (message) => {
-    // Commande ping pour tester que le bot fonctionne
-    if (message.content === '!ping') {
-      message.reply('Pong! 🏓');
-      return;
-    }
+client.on('threadUpdate', async (oldThread, newThread) => {
+  if (newThread.parentId !== process.env.CHANNEL_CONCOUR_ID) return;
+  
+  const oldTags = oldThread.appliedTags;
+  const newTags = newThread.appliedTags;
+  
+  if (JSON.stringify(oldTags) !== JSON.stringify(newTags)) {
+    const oldPhase = oldTags[0];
+    const currentPhase = newTags[0];
+    const phaseOrder = Object.values(gestionConcours.phases);
     
-    // Vérifier si le message est dans le canal spécifié
-    if (message.channelId === process.env.CHANNEL_CONCOUR_ID && message.attachments.size === 0 && message.embeds.length === 0 && message.member && !message.member.roles.cache.some(role => role.name === 'Modérateur')) {
-      console.log(`Message texte sans média détecté: ${message.content}`);
-      
-      try {
-        // Supprimer le message texte
-        await message.delete();
-        console.log('Message texte supprimé avec succès');
-      } catch (error) {
-        console.error("Erreur lors de la suppression du message:", error);
-      }
+    console.log('[TRANSITION] Tentative de transition:', { oldPhase, currentPhase });
+    
+    if (phaseOrder.indexOf(oldPhase) + 1 === phaseOrder.indexOf(currentPhase)) {
+      console.log('[TRANSITION] Transition valide vers', currentPhase);
+      await gestionConcours.gererTransitionPhase(newThread, currentPhase);
+    } else {
+      console.warn('[TRANSITION] Transition non autorisée', 
+        { sequence_attendue: phaseOrder.join(' -> ') });
     }
-    else if (message.channelId === process.env.CHANNEL_CONCOUR_ID && (message.attachments.size > 0 || message.embeds.length > 0) && message.member) {
-      console.log(`Nouveau message avec média dans le fil: ${message.content}`);
-      
-      try {
-        // Ajouter la réaction au message
-        await message.react(process.env.REACT_EMOJI);
-        console.log(`Réaction ${process.env.REACT_EMOJI} ajoutée au message`);
-      } catch (error) {
-        console.error("Erreur lors de l'ajout de la réaction:", error);
-      }
-    }
-  });
-  
-  // Fonction pour lister les messages récents du fil
-  async function listThreadMessages() {
-    try {
-      const parentChannel = await client.channels.fetch(process.env.CHANNEL_CONCOUR_ID);
-      if (!parentChannel) {
-        console.error('Canal parent non trouvé');
-        return;
-      }
-
-      // Récupérer tous les threads actifs
-      const activeThreads = await parentChannel.threads.fetchActive();
-      console.log(`${activeThreads.threads.size} threads actifs trouvés`);
-
-      // Filtrer les threads avec le tag 'En cours'
-      const filteredThreads = activeThreads.threads.filter(thread => 
-        !thread.locked
-      );
-
-      console.log(`${filteredThreads.size} threads avec le tag 'En cours'`);
-
-      // Parcourir chaque thread filtré
-      filteredThreads.forEach(async (thread) => {
-        try {
-          const messages = await thread.messages.fetch({ limit: 10 });
-          console.log(`\nThread: ${thread.name} (${thread.id})`);
-          console.log(`${messages.size} messages récents:`);
-
-          messages.forEach(msg => {
-            console.log(`- ${msg.author.username}: ${msg.content || 'Média uniquement'}`);
-          });
-
-          // Appliquer la logique de modération
-          applyThreadRules(thread);
-        } catch (error) {
-          console.error(`Erreur dans le thread ${thread.name}:`, error);
-        }
-      });
-    } catch (error) {
-      console.error('Erreur générale:', error);
-    }
-  }
-
-  const threadHandlers = new WeakMap();
-
-client.setMaxListeners(20);
-
-// Écouteur unique global
-client.on(Events.MessageCreate, async (message) => {
-  const thread = threadHandlers.get(message.channel);
-  if (thread && !thread.locked) {
-    handleMessage(message);
   }
 });
 
-function applyThreadRules(thread) {
-  // Enregistrer le thread dans la WeakMap
-  threadHandlers.set(thread, {
-    createdAt: Date.now(),
-    lastActivity: Date.now()
-  });
+client.on('messageCreate', async (message) => {
+  await gestionConcours.verifierMessage(message);
+});
 
-
-}
-
-// Écouteurs globaux pour les threads
-client.on(Events.ThreadCreate, (thread) => {
+client.on('threadCreate', async (thread) => {
   if (thread.parentId === process.env.CHANNEL_CONCOUR_ID) {
-    console.log(`Nouveau thread détecté: ${thread.name}`);
-    applyThreadRules(thread);
+    await gestionThreads.creerThreadSemaine(thread.parent);
   }
 });
 
-client.on(Events.ThreadUpdate, (oldThread, newThread) => {
-  if (oldThread.locked && !newThread.locked) {
-    console.log(`Thread déverrouillé détecté: ${newThread.name}`);
-    applyThreadRules(newThread);
-  } else if (!oldThread.locked && newThread.locked) {
-    threadHandlers.delete(newThread);
-    console.log(`Thread ${newThread.name} nettoyé`);
-  }
-});
-
-  async function handleMessage(message) {
-    // Logique existante de gestion des messages
-    if (message.content === '!ping') {
-      message.reply('Pong! 🏓');
-      return;
-    }
-
-    const member = message.member;
-    if (!member) return;
-
-    if (message.attachments.size === 0 && message.embeds.length === 0 && 
-        !member.roles.cache.some(role => role.name === 'Modérateur')) {
-      try {
-        await message.delete();
-        console.log('Message texte supprimé dans le thread');
-      } catch (error) {
-        console.error('Erreur suppression:', error);
-      }
-    } else if (message.attachments.size > 0 || message.embeds.length > 0) {
-      try {
-        await message.react(process.env.REACT_EMOJI);
-        console.log('Réaction ajoutée dans le thread');
-      } catch (error) {
-        console.error('Erreur réaction:', error);
-      }
-    }
-  }
-  
-  client.login(process.env.CLIENT_TOKEN);
+client.login(process.env.CLIENT_TOKEN);
