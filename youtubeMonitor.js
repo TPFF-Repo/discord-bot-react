@@ -10,7 +10,7 @@ class YouTubeMonitor {
     this.client = client;
     this.channelsFile = './youtubeChannels.json';
     this.notifiedFile = './notifiedVideos.json';
-    this.interval = process.env.YOUTUBE_CHECK_INTERVAL || 10000;
+    this.interval = process.env.YOUTUBE_CHECK_INTERVAL || 3600000; // 1 heure par défaut;
     this.channelIdCache = new Map();
     this.notifiedVideos = {};
   }
