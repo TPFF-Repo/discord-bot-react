@@ -95,7 +95,8 @@ class GestionConcours {
           try {
             // Validation des auteurs avant attribution des rôles
             if (premier?.author) {
-              await premier.author.roles.add(process.env.TROPHY_ROLE_FIRST);
+              const member = await message.guild.members.fetch(message.author.id);
+              await member.roles.add(process.env.TROPHY_ROLE_FIRST);
               console.log(`[REWARD] Role 1er attribué à ${premier.author.username}`);
             } else {
               console.error('[ERREUR] Auteur du message gagnant introuvable', premier?.id);
