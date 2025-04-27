@@ -57,7 +57,11 @@ class YouTubeMonitor {
         );
   
         const latestVideo = response.data.items[0];
-        if (latestVideo && !this.notifiedVideos[latestVideo.id.videoId]) {
+        const videoDate = new Date(latestVideo.snippet.publishedAt);
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        
+        if (latestVideo && !this.notifiedVideos[latestVideo.id.videoId] && videoDate >= today) {
           this.notifyChannel(latestVideo, channel.username);
           this.notifiedVideos[latestVideo.id.videoId] = Date.now();
           await fs.writeFile(this.notifiedFile, JSON.stringify(this.notifiedVideos));
